@@ -74,9 +74,7 @@ namespace {
 	}
 	template<typename... Args>
 	void apply(const std::function<void(Args...)> &f, const std::vector<std::string> &arr) {
-		using std::tuple_size;
-		using indices = nlohmann::detail::make_index_sequence<sizeof...(Args)>;
-		apply_impl<std::tuple<Args...>>(f, arr, indices{});
+		apply_impl<std::tuple<Args...>>(f, arr, nlohmann::detail::make_index_sequence<sizeof...(Args)>{});
 	}
 }
 
