@@ -41,10 +41,19 @@ bool LineEditor::clear()
 	cursor_pos_ = 0;
 }
 
+bool LineEditor::moveCursorL(int amount)
+{
+	return cursor_pos_ >= amount && ((cursor_pos_-=amount) || true);
+}
+bool LineEditor::moveCursorR(int amount)
+{
+	return buffer_.size()-cursor_pos_ >= amount && ((cursor_pos_+=amount) || true);
+}
 bool LineEditor::moveCursor(int amount)
 {
-	auto newpos = cursor_pos_+amount;
-	return (0 <= newpos && newpos <= buffer_.size()) && ((cursor_pos_ = newpos) || true);
+	return (amount > 0 && moveCursorR(amount))
+	|| (amount < 0 && moveCursorL(-amount))
+	|| amount == 0;
 }
 namespace {
 	std::string delimiters = " \t\n";
@@ -74,11 +83,11 @@ bool LineEditor::moveCursorWordR()
 
 bool LineEditor::moveCursorHome()
 {
-	return (cursor_pos_ > 0) && ((cursor_pos_ = 0) || true);
+	return cursor_pos_ > 0 && moveCursorL(cursor_pos_);
 }
 bool LineEditor::moveCursorEnd()
 {
-	return (cursor_pos_ < buffer_.size()) && ((cursor_pos_ = buffer_.size()) || true);
+	return cursor_pos_ < buffer_.size() && moveCursorR(buffer_.size()-cursor_pos_);
 }
 
 
@@ -96,6 +105,10 @@ Prompt::Prompt(const Settings &settings)
 
 void Prompt::keyPressed(ofKeyEventArgs &key)
 {
+	auto deleteSelected = [this]() {
+		return select_length_ > 0 ? editor_.deleteR(select_length_) : editor_.deleteL(-select_length_)
+		, select_length_ != 0;
+	};
 	bool clear_select = false;
 	auto cursor_prev = editor_.getCursorPos();
 	switch(key.key) {
@@ -128,27 +141,11 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			clear_select = !special_keys_.shift;
 			break;
 		case OF_KEY_DEL:
-			if(select_length_ > 0) {
-				editor_.deleteR(select_length_);
-			}
-			else if(select_length_ < 0) {
-				editor_.deleteL(-select_length_);
-			}
-			else {
-				editor_.deleteR();
-			}
+			deleteSelected() || editor_.deleteR();
 			clear_select = true;
 			break;
 		case OF_KEY_BACKSPACE:
-			if(select_length_ > 0) {
-				editor_.deleteR(select_length_);
-			}
-			else if(select_length_ < 0) {
-				editor_.deleteL(-select_length_);
-			}
-			else {
-				editor_.deleteL();
-			}
+			deleteSelected() || editor_.deleteL();
 			clear_select = true;
 			break;
 		case OF_KEY_RETURN: {

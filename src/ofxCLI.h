@@ -18,8 +18,8 @@ public:
 	bool deleteR(int amount=1);
 	bool clear();
 	
-	bool moveCursorL(int amount=1) { return moveCursor(-amount); }
-	bool moveCursorR(int amount=1) { return moveCursor(amount); }
+	bool moveCursorL(int amount=1);
+	bool moveCursorR(int amount=1);
 	bool moveCursor(int amount);
 	bool moveCursorWordL();
 	bool moveCursorWordR();
