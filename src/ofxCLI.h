@@ -42,7 +42,7 @@ public:
 	void draw() const;
 	using SubscriberIdentifier = std::size_t;
 	template<typename... Args>
-	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback);
+	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args={});
 	bool unsubscribe(SubscriberIdentifier identifier);
 protected:
 	void keyPressed(ofKeyEventArgs &key);
@@ -69,25 +69,36 @@ protected:
 
 namespace {
 	template<typename Tuple, typename F, std::size_t ...I>
-	void apply_impl(F &&f, const std::vector<std::string> &arr, nlohmann::detail::index_sequence<I...>) {
-		f(ofFromString<typename std::tuple_element<I,Tuple>::type>(arr[I])...);
+	void apply_impl(F &&f, const Tuple &args, nlohmann::detail::index_sequence<I...>) {
+		f(std::get<I>(args)...);
 	}
 	template<typename... Args>
-	void apply(const std::function<void(Args...)> &f, const std::vector<std::string> &arr) {
-		apply_impl<std::tuple<Args...>>(f, arr, nlohmann::detail::make_index_sequence<sizeof...(Args)>{});
+	void apply(const std::function<void(Args...)> &f, const std::tuple<Args...> &args) {
+		apply_impl<std::tuple<Args...>>(f, args, nlohmann::detail::make_index_sequence<sizeof...(Args)>{});
+	}
+	template<std::size_t N, typename Tuple>
+	typename std::tuple_element<N, Tuple>::type toElement(const std::vector<std::string> &arr, const Tuple &defaults) {
+		return N < arr.size() ? ofFromString<typename std::tuple_element<N, Tuple>::type>(arr[N]) : std::get<N>(defaults);
+	}
+	template<typename Tuple, std::size_t... I>
+	Tuple make_tuple_from_vector_impl(const std::vector<std::string> &arr, const Tuple &defaults, nlohmann::detail::index_sequence<I...>) {
+		return std::make_tuple(toElement<I>(arr, defaults)...);
+	}
+	template<typename... Args>
+	std::tuple<Args...> make_tuple_from_vector(const std::vector<std::string> &arr, const std::tuple<Args...> &defaults) {
+		return make_tuple_from_vector_impl<std::tuple<Args...>>(arr, defaults,  nlohmann::detail::make_index_sequence<sizeof...(Args)>{});
 	}
 }
 
 
 
 template<typename... Args>
-inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, std::function<void(Args...)> callback)
+inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args)
 {
 	auto ret = next_identifier_++;
 	identifier_.insert(std::make_pair(command, ret));
-	auto func = [callback](std::vector<std::string> args) {
-		args.resize(sizeof...(Args));
-		apply<Args...>(callback, args);
+	auto func = [callback,default_args](std::vector<std::string> args) {
+		apply(callback, make_tuple_from_vector(args, default_args));
 	};
 	callback_.insert(make_pair(ret, func));
 	return ret;
