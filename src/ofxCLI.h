@@ -86,6 +86,7 @@ inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const 
 	auto ret = next_identifier_++;
 	identifier_.insert(std::make_pair(command, ret));
 	auto func = [callback](std::vector<std::string> args) {
+		args.resize(sizeof...(Args));
 		apply<Args...>(callback, args);
 	};
 	callback_.insert(make_pair(ret, func));
