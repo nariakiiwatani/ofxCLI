@@ -2,6 +2,9 @@
 
 #include "ofEvents.h"
 #include "Testate.h"
+#include <unordered_map>
+#include <map>
+#include "json.hpp"
 
 namespace ofx {
 namespace cli {
@@ -37,11 +40,18 @@ public:
 	};
 	Prompt(const Settings &settings=Settings());
 	void draw() const;
+	using SubscriberIdentifier = std::size_t;
+	template<typename... Args>
+	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback);
+	bool unsubscribe(SubscriberIdentifier identifier);
 protected:
 	void keyPressed(ofKeyEventArgs &key);
 	void keyReleased(ofKeyEventArgs &key);
+	void proc(const std::string &command);
 	LineEditor editor_;
 	std::deque<std::string> history_;
+	std::unordered_multimap<std::string, SubscriberIdentifier> identifier_;
+	std::map<SubscriberIdentifier, std::function<void(std::vector<std::string>)>> callback_;
 	
 	struct SpecialKeys {
 		bool shift=false;
@@ -52,5 +62,34 @@ protected:
 	int select_length_=0;
 	
 	Testate testate_;
+	
+	SubscriberIdentifier next_identifier_;
 };
 }}
+
+namespace {
+	template<typename Tuple, typename F, std::size_t ...I>
+	void apply_impl(F &&f, const std::vector<std::string> &arr, nlohmann::detail::index_sequence<I...>) {
+		f(ofFromString<typename std::tuple_element<I,Tuple>::type>(arr[I])...);
+	}
+	template<typename... Args>
+	void apply(const std::function<void(Args...)> &f, const std::vector<std::string> &arr) {
+		using std::tuple_size;
+		using indices = nlohmann::detail::make_index_sequence<sizeof...(Args)>;
+		apply_impl<std::tuple<Args...>>(f, arr, indices{});
+	}
+}
+
+
+
+template<typename... Args>
+inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, std::function<void(Args...)> callback)
+{
+	auto ret = next_identifier_++;
+	identifier_.insert(std::make_pair(command, ret));
+	auto func = [callback](std::vector<std::string> args) {
+		apply<Args...>(callback, args);
+	};
+	callback_.insert(make_pair(ret, func));
+	return ret;
+}

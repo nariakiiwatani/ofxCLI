@@ -2,6 +2,12 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	prompt_.subscribe("str", std::function<void(std::string)>([](std::string i) {
+		cout << i << endl;
+	}));
+	prompt_.subscribe("i2", std::function<void(int,int)>([](int _0, int _1) {
+		cout << _0 << " " << _1 << endl;
+	}));
 }
 
 //--------------------------------------------------------------

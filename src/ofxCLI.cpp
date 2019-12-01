@@ -4,7 +4,6 @@
 using namespace std;
 using namespace ofx::cli;
 
-
 bool LineEditor::insert(char ch)
 {
 	buffer_.insert(cursor_pos_++, ofToString(ch));
@@ -149,11 +148,12 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			clear_select = true;
 			break;
 		case OF_KEY_RETURN: {
-			clear_select = true;
 			if(!editor_.get().empty()) {
+				proc(editor_.get());
 				history_.push_back(editor_.get());
 				editor_.clear();
 			}
+			clear_select = true;
 		}	break;
 		default:
 			if(0x20 <= key.key && key.key <= 0x7e) {
@@ -177,6 +177,33 @@ void Prompt::keyReleased(ofKeyEventArgs &key)
 		case OF_KEY_ALT:	special_keys_.alt = false;	break;
 		case OF_KEY_CONTROL:	special_keys_.control = false;	break;
 		case OF_KEY_COMMAND:	special_keys_.command = false;	break;
+	}
+}
+
+bool Prompt::unsubscribe(Prompt::SubscriberIdentifier identifier)
+{
+	callback_.erase(identifier);
+}
+
+void Prompt::proc(const std::string &command)
+{
+	std::string delimiter = " ";
+	auto str = command;
+	for(auto &&ch : delimiters) {
+		ofStringReplace(str, ofToString(ch), delimiter);
+	}
+	std::vector<std::string> args = ofSplitString(str, delimiter, true, true);
+	if(args.empty()) {
+		return;
+	}
+	auto program = args[0];
+	args.erase(begin(args));
+	auto identifiers = identifier_.equal_range(program);
+	for(auto it = identifiers.first; it != identifiers.second; ++it) {
+		auto funcs = callback_.equal_range(it->second);
+		for(auto it2 = funcs.first; it2 != funcs.second; ++it2) {
+			it2->second(args);
+		}
 	}
 }
 
