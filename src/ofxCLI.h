@@ -11,7 +11,7 @@ namespace cli {
 class LineEditor
 {
 public:
-	std::string get() const { return buffer_; }
+	const std::string& get() const { return buffer_; }
 	std::size_t getCursorPos() const { return cursor_pos_; }
 	
 	bool insert(char ch);
@@ -44,6 +44,11 @@ public:
 	template<typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args={});
 	bool unsubscribe(SubscriberIdentifier identifier);
+	
+	const std::string& getText() const { return editor_.get(); }
+	std::size_t getCursorPos() const { return editor_.getCursorPos(); }
+	int getSelectLength() const { return select_length_; }
+	const std::vector<std::string>& getHistory() const { history_; }
 protected:
 	void keyPressed(ofKeyEventArgs &key);
 	void keyReleased(ofKeyEventArgs &key);
