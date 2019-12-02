@@ -140,6 +140,24 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			}
 			clear_select = !special_keys_.shift;
 			break;
+		case OF_KEY_UP:
+			if(history_header_ != begin(history_)) {
+				editor_.clear();
+				editor_.insert(*--history_header_);
+				editor_.moveCursorEnd();
+			}
+			clear_select = true;
+			break;
+		case OF_KEY_DOWN:
+			if(history_header_ != end(history_)) {
+				editor_.clear();
+				if(++history_header_ != end(history_)) {
+					editor_.insert(*history_header_);
+				}
+				editor_.moveCursorEnd();
+			}
+			clear_select = true;
+			break;
 		case OF_KEY_DEL:
 			deleteSelected() || editor_.deleteR();
 			clear_select = true;
@@ -150,8 +168,12 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			break;
 		case OF_KEY_RETURN: {
 			if(!editor_.get().empty()) {
-				proc(editor_.get());
-				history_.push_back(editor_.get());
+				auto &&str = editor_.get();
+				proc(str);
+				if(history_.empty() || history_header_ != end(history_)-1 || *history_header_ != str) {
+					history_.push_back(str);
+				}
+				history_header_ = end(history_);
 				editor_.clear();
 			}
 			clear_select = true;

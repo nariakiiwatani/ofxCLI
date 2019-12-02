@@ -50,6 +50,7 @@ protected:
 	void proc(const std::string &command);
 	LineEditor editor_;
 	std::deque<std::string> history_;
+	std::deque<std::string>::iterator history_header_;
 	std::unordered_multimap<std::string, SubscriberIdentifier> identifier_;
 	std::map<SubscriberIdentifier, std::function<void(std::vector<std::string>)>> callback_;
 	
