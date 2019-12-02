@@ -168,8 +168,8 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			break;
 		case OF_KEY_RETURN: {
 			if(!editor_.get().empty()) {
+				proc();
 				auto &&str = editor_.get();
-				proc(str);
 				if(history_.empty() || history_header_ != end(history_)-1 || *history_header_ != str) {
 					history_.push_back(str);
 				}
@@ -251,6 +251,10 @@ namespace {
 		return ret;
 	}
 }
+void Prompt::proc()
+{
+	proc(editor_.get());
+}
 void Prompt::proc(const std::string &command)
 {
 	auto args = split(command);
@@ -259,6 +263,10 @@ void Prompt::proc(const std::string &command)
 	}
 	auto program = args[0];
 	args.erase(begin(args));
+	proc(program, args);
+}
+void Prompt::proc(const std::string &program, const std::vector<std::string> &args)
+{
 	auto identifiers = identifier_.equal_range(program);
 	for(auto it = identifiers.first; it != identifiers.second; ++it) {
 		auto funcs = callback_.equal_range(it->second);

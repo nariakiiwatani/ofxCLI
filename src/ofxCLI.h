@@ -46,6 +46,10 @@ public:
 	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args={});
 	bool unsubscribe(SubscriberIdentifier identifier);
 	
+	void proc();
+	void proc(const std::string &command);
+	void proc(const std::string &program, const std::vector<std::string> &args);
+
 	const std::string& getText() const { return editor_.get(); }
 	std::size_t getCursorPos() const { return editor_.getCursorPos(); }
 	int getSelectLength() const { return select_length_; }
@@ -53,7 +57,6 @@ public:
 protected:
 	void keyPressed(ofKeyEventArgs &key);
 	void keyReleased(ofKeyEventArgs &key);
-	void proc(const std::string &command);
 	LineEditor editor_;
 	std::deque<std::string> history_;
 	std::deque<std::string>::iterator history_header_;
