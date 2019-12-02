@@ -1,5 +1,6 @@
 #include "ofxCLI.h"
 #include "ofGraphics.h"
+#include <regex>
 
 using namespace std;
 using namespace ofx::cli;
@@ -185,14 +186,52 @@ bool Prompt::unsubscribe(Prompt::SubscriberIdentifier identifier)
 	callback_.erase(identifier);
 }
 
+namespace {
+	std::string regexEscaped(std::string str) {
+		std::string escaper = "\\*+.?{}()[]-|$";
+		for(auto &&ch : escaper) {
+			ofStringReplace(str, ofToString(ch), "\\"+ofToString(ch));
+		}
+		return str;
+	}
+	std::string trimming(std::string src, std::string str) {
+		str = regexEscaped(str);
+		auto pos = src.find(str);
+		if(pos != std::string::npos) {
+			src = src.substr(str.length());
+		}
+		pos = src.rfind(str);
+		if(pos != std::string::npos) {
+			src = src.substr(0,pos);
+		}
+		return src;
+	}
+	std::vector<std::string> split(std::string src, std::vector<std::string> delimiters={" ", ","}, std::vector<std::string> quotes={"\"", "'"}) {
+		auto dels = delimiters;
+		dels.insert(std::end(dels), std::begin(quotes), std::end(quotes));
+		for(int i = 0; i < dels.size(); ++i) {
+			dels[i] = regexEscaped(dels[i]);
+		}
+		std::vector<std::string> patterns = {"((?!"+ofJoinString(dels,"|")+").)+"};
+		for(int i = 0; i < quotes.size(); ++i) {
+			auto src = regexEscaped(quotes[i]);
+			patterns.push_back(src + "((?!" + src + ").)*" + src);
+		}
+		std::regex re(ofJoinString(patterns, "|"));
+		std::vector<std::string> ret = {};
+		for (std::sregex_iterator it{std::begin(src), std::end(src), re}, last{}; it != last; ++it) {
+			std::string str = (*it).str();
+			for(auto &&q : quotes) {
+				str = trimming(str, q);
+			}
+			ret.push_back(str);
+		}
+		return ret;
+	}
+}
 void Prompt::proc(const std::string &command)
 {
-	std::string delimiter = " ";
-	auto str = command;
-	for(auto &&ch : delimiters) {
-		ofStringReplace(str, ofToString(ch), delimiter);
-	}
-	std::vector<std::string> args = ofSplitString(str, delimiter, true, true);
+	auto args = split(command);
 	if(args.empty()) {
 		return;
 	}
