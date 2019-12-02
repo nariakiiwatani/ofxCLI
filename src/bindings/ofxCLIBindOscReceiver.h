@@ -36,12 +36,12 @@ public:
 	struct Settings {
 		Settings(){}
 		int port=6000;
-		bool ignore_first_slash=true;
+		bool ignore_leading_slash=true;
 	};
 	void bind(Prompt &p, const Settings &s=Settings()) {
 		prompt_ = &p;
 		osc_receiver_.setup(s.port);
-		ignore_first_slash_ = s.ignore_first_slash;
+		ignore_leading_slash_ = s.ignore_leading_slash;
 		ofAddListener(ofEvents().update, this, &BindOscReceiver::update);
 		testate_.leaveWill([this]() {
 			ofRemoveListener(ofEvents().update, this, &BindOscReceiver::update);
@@ -54,7 +54,7 @@ protected:
 			ofxOscMessage msg;
 			osc_receiver_.getNextMessage(msg);
 			auto program = msg.getAddress();
-			if(ignore_first_slash_ && !program.empty() && program[0] == '/') {
+			if(ignore_leading_slash_ && !program.empty() && program[0] == '/') {
 				program = program.substr(1);
 			}
 			vector<string> args(msg.getNumArgs());
@@ -67,7 +67,7 @@ protected:
 	}
 	Prompt *prompt_=nullptr;
 	ofxOscReceiver osc_receiver_;
-	bool ignore_first_slash_=true;
+	bool ignore_leading_slash_=true;
 	
 	Testate testate_;
 };
