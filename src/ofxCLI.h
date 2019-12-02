@@ -39,7 +39,8 @@ public:
 		bool enable_key_event = true;
 	};
 	Prompt(const Settings &settings=Settings());
-	void draw() const;
+	void draw(float x, float y) const;
+	void drawDebug(float x, float y) const;
 	using SubscriberIdentifier = std::size_t;
 	template<typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args={});

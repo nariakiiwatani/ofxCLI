@@ -268,18 +268,27 @@ void Prompt::proc(const std::string &command)
 	}
 }
 
-void Prompt::draw() const
+void Prompt::draw(float x, float y) const
 {
-	int y = 10;
+	ofPushMatrix();
+	ofTranslate(x,y);
+	ofPushStyle();
+	ofSetColor(ofColor::gray);
+	ofDrawRectangle(editor_.getCursorPos()*8, -4, select_length_*8, 6);
+	ofSetColor(ofColor::black);
+	ofDrawRectangle(editor_.getCursorPos()*8, -10, 8, 12);
+	ofPopStyle();
+	ofDrawBitmapString(editor_.get(), 0, 0);
+	ofPopMatrix();
+}
+void Prompt::drawDebug(float x, float y) const
+{
+	ofPushMatrix();
+	ofTranslate(x,0);
 	for(auto &&h : history_) {
 		ofDrawBitmapString(h, 0, y);
 		y += 10;
 	}
-	ofPushStyle();
-	ofSetColor(ofColor::gray);
-	ofDrawRectangle(editor_.getCursorPos()*8, y-4, select_length_*8, 6);
-	ofSetColor(ofColor::black);
-	ofDrawRectangle(editor_.getCursorPos()*8, y-10, 8, 12);
-	ofPopStyle();
-	ofDrawBitmapString(editor_.get(), 0, y);
+	ofPopMatrix();
+	draw(x,y);
 }
