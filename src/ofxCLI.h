@@ -4,6 +4,7 @@
 #include "Testate.h"
 #include <unordered_map>
 #include <map>
+#include "ofJson.h"
 #include "json.hpp"
 
 namespace ofx {
@@ -49,6 +50,8 @@ public:
 	void proc();
 	void proc(const std::string &command);
 	void proc(const std::string &program, const std::vector<std::string> &args);
+	
+	ofEvent<ofJson> SUBSCRIBED, UNSUBSCRIBED;
 
 	const std::string& getText() const { return editor_.get(); }
 	std::size_t getCursorPos() const { return editor_.getCursorPos(); }
@@ -61,7 +64,7 @@ protected:
 	std::deque<std::string> history_;
 	std::deque<std::string>::iterator history_header_;
 	std::unordered_multimap<std::string, SubscriberIdentifier> identifier_;
-	std::map<SubscriberIdentifier, std::function<void(std::vector<std::string>)>> callback_;
+	std::map<SubscriberIdentifier, std::function<ofJson(std::vector<std::string>)>> callback_;
 	
 	struct SpecialKeys {
 		bool shift=false;
@@ -107,8 +110,10 @@ inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const 
 {
 	auto ret = next_identifier_++;
 	identifier_.insert(std::make_pair(command, ret));
-	auto func = [callback,default_args](std::vector<std::string> args) {
-		apply(callback, make_tuple_from_vector(args, default_args));
+	auto func = [callback,default_args](std::vector<std::string> argv) {
+		auto args = make_tuple_from_vector(argv, default_args);
+		apply(callback, args);
+		return args;
 	};
 	callback_.insert(make_pair(ret, func));
 	return ret;
