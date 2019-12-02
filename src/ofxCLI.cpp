@@ -273,13 +273,13 @@ void Prompt::proc(const std::string &program, const std::vector<std::string> &ar
 		auto funcs = callback_.equal_range(it->second);
 		for(auto it2 = funcs.first; it2 != funcs.second; ++it2) {
 			auto deduced_args = it2->second(args);
-			ofJson json = {"program",program,"args",deduced_args};
+			ofJson json = {{"program",program},{"args",deduced_args}};
 			ofNotifyEvent(SUBSCRIBED, json, this);
 			done = true;
 		}
 	}
 	if(!done) {
-		ofJson json = {"program",program,"args",args};
+		ofJson json = {{"program",program},{"args",args}};
 		ofNotifyEvent(UNSUBSCRIBED, json, this);
 	}
 }
