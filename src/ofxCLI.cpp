@@ -35,24 +35,69 @@ bool LineEditor::deleteR(int amount)
 	return true;
 }
 
+bool LineEditor::deleteSelected()
+{
+	if(selection_length_ == 0) {
+		return false;
+	}
+	selection_length_ > 0 ? deleteR(selection_length_) : deleteL(-selection_length_);
+	selection_length_ = 0;
+	return true;
+};
+
 bool LineEditor::clear()
 {
 	buffer_.clear();
 	cursor_pos_ = 0;
+	selection_length_ = 0;
 }
 
-bool LineEditor::moveCursorL(int amount)
+bool LineEditor::moveCursorL()
 {
-	return cursor_pos_ >= amount && ((cursor_pos_-=amount) || true);
+	switch(move_mode_) {
+		case CHAR:	return moveCursorCharL(1);
+		case WORD:	return moveCursorWordL();
+		case WHOLE:	return moveCursorHome();
+	}
+	return false;
 }
-bool LineEditor::moveCursorR(int amount)
+
+bool LineEditor::moveCursorR()
 {
-	return buffer_.size()-cursor_pos_ >= amount && ((cursor_pos_+=amount) || true);
+	switch(move_mode_) {
+		case CHAR:	return moveCursorCharR(1);
+		case WORD:	return moveCursorWordR();
+		case WHOLE:	return moveCursorEnd();
+	}
+	return false;
 }
-bool LineEditor::moveCursor(int amount)
+
+bool LineEditor::moveCursorCharL(int amount)
 {
-	return (amount > 0 && moveCursorR(amount))
-	|| (amount < 0 && moveCursorL(-amount))
+	if(cursor_pos_ < amount) {
+		return false;
+	}
+	if(selection_mode_) {
+		selection_length_ += amount;
+	}
+	cursor_pos_-=amount;
+	return true;
+}
+bool LineEditor::moveCursorCharR(int amount)
+{
+	if(buffer_.size()-cursor_pos_ < amount) {
+		return false;
+	}
+	if(selection_mode_) {
+		selection_length_ -= amount;
+	}
+	cursor_pos_+=amount;
+	return true;
+}
+bool LineEditor::moveCursorChar(int amount)
+{
+	return (amount > 0 && moveCursorCharR(amount))
+	|| (amount < 0 && moveCursorCharL(-amount))
 	|| amount == 0;
 }
 namespace {
@@ -61,35 +106,34 @@ namespace {
 bool LineEditor::moveCursorWordL()
 {
 	if(cursor_pos_ != 0 && delimiters.find(buffer_[cursor_pos_-1]) != string::npos) {
-		moveCursorL();
+		moveCursorCharL();
 		moveCursorWordL();
 		return true;
 	}
 	string::reverse_iterator start = buffer_.rbegin()+(buffer_.size()-cursor_pos_); 
 	auto found = std::find_first_of(start, buffer_.rend(), begin(delimiters), end(delimiters));
 	auto newpos = found != buffer_.rend() ? buffer_.size() - std::distance(buffer_.rbegin(), found) : string::npos;
-	return (newpos != string::npos && moveCursorL(cursor_pos_-newpos)) || moveCursorHome();
+	return (newpos != string::npos && moveCursorCharL(cursor_pos_-newpos)) || moveCursorHome();
 }
 bool LineEditor::moveCursorWordR()
 {
 	if(cursor_pos_ != buffer_.size() && delimiters.find(buffer_[cursor_pos_]) != string::npos) {
-		moveCursorR();
+		moveCursorCharR();
 		moveCursorWordR();
 		return true;
 	}
 	auto newpos = buffer_.find_first_of(delimiters, cursor_pos_);
-	return (newpos != string::npos && moveCursorR(newpos-cursor_pos_)) || moveCursorEnd();
+	return (newpos != string::npos && moveCursorCharR(newpos-cursor_pos_)) || moveCursorEnd();
 }
 
 bool LineEditor::moveCursorHome()
 {
-	return cursor_pos_ > 0 && moveCursorL(cursor_pos_);
+	return cursor_pos_ > 0 && moveCursorCharL(cursor_pos_);
 }
 bool LineEditor::moveCursorEnd()
 {
-	return cursor_pos_ < buffer_.size() && moveCursorR(buffer_.size()-cursor_pos_);
+	return cursor_pos_ < buffer_.size() && moveCursorCharR(buffer_.size()-cursor_pos_);
 }
-
 
 Prompt::Prompt(const Settings &settings)
 {
@@ -105,39 +149,24 @@ Prompt::Prompt(const Settings &settings)
 
 void Prompt::keyPressed(ofKeyEventArgs &key)
 {
-	auto deleteSelected = [this]() {
-		return select_length_ > 0 ? editor_.deleteR(select_length_) : editor_.deleteL(-select_length_)
-		, select_length_ != 0;
-	};
 	bool clear_select = false;
-	auto cursor_prev = editor_.getCursorPos();
 	switch(key.key) {
 		case OF_KEY_SHIFT:	special_keys_.shift = true;	break;
 		case OF_KEY_ALT:	special_keys_.alt = true;	break;
 		case OF_KEY_CONTROL:	special_keys_.control = true;	break;
 		case OF_KEY_COMMAND:	special_keys_.command = true;	break;
-		case OF_KEY_LEFT: {
-			if(special_keys_.alt) {
-				editor_.moveCursorWordL();
-			}
-			else if(special_keys_.command) {
-				editor_.moveCursorHome();
-			}
-			else {
-				editor_.moveCursorL();
-			}
+	}
+	if(special_keys_.shift) {
+		editor_.enterSelectionMode();
+	}
+	editor_.setMoveMode(special_keys_.command ? LineEditor::WHOLE : (special_keys_.alt ? LineEditor::WORD : LineEditor::CHAR));
+	switch(key.key) {
+		case OF_KEY_LEFT:
+			editor_.moveCursorL();
 			clear_select = !special_keys_.shift;
-		}	break;
+			break;
 		case OF_KEY_RIGHT:
-			if(special_keys_.alt) {
-				editor_.moveCursorWordR();
-			}
-			else if(special_keys_.command) {
-				editor_.moveCursorEnd();
-			}
-			else {
-				editor_.moveCursorR();
-			}
+			editor_.moveCursorR();
 			clear_select = !special_keys_.shift;
 			break;
 		case OF_KEY_UP:
@@ -159,17 +188,17 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			clear_select = true;
 			break;
 		case OF_KEY_DEL:
-			deleteSelected() || editor_.deleteR();
+			editor_.deleteSelected() || editor_.deleteR();
 			clear_select = true;
 			break;
 		case OF_KEY_BACKSPACE:
-			deleteSelected() || editor_.deleteL();
+			editor_.deleteSelected() || editor_.deleteL();
 			clear_select = true;
 			break;
 		case OF_KEY_RETURN: {
-			if(!editor_.get().empty()) {
+			auto &&str = editor_.getText();
+			if(!str.empty()) {
 				proc();
-				auto &&str = editor_.get();
 				if(history_.empty() || history_header_ != end(history_)-1 || *history_header_ != str) {
 					history_.push_back(str);
 				}
@@ -186,10 +215,7 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			break;
 	}
 	if(clear_select) {
-		select_length_ = 0;
-	}
-	else if(special_keys_.shift) {
-		select_length_ += cursor_prev - editor_.getCursorPos();
+		editor_.clearSelection();
 	}
 }
 
@@ -201,6 +227,10 @@ void Prompt::keyReleased(ofKeyEventArgs &key)
 		case OF_KEY_CONTROL:	special_keys_.control = false;	break;
 		case OF_KEY_COMMAND:	special_keys_.command = false;	break;
 	}
+	if(!special_keys_.shift) {
+		editor_.leaveSelectionMode();
+	}
+	editor_.setMoveMode(special_keys_.command ? LineEditor::WHOLE : (special_keys_.alt ? LineEditor::WORD : LineEditor::CHAR));
 }
 
 bool Prompt::unsubscribe(Prompt::SubscriberIdentifier identifier)
@@ -253,7 +283,7 @@ namespace {
 }
 void Prompt::proc()
 {
-	proc(editor_.get());
+	proc(editor_.getText());
 }
 void Prompt::proc(const std::string &command)
 {
@@ -290,11 +320,11 @@ void Prompt::draw(float x, float y) const
 	ofTranslate(x,y);
 	ofPushStyle();
 	ofSetColor(ofColor::gray);
-	ofDrawRectangle(editor_.getCursorPos()*8, -4, select_length_*8, 6);
+	ofDrawRectangle(editor_.getCursorPos()*8, -4, editor_.getSelectionLength()*8, 6);
 	ofSetColor(ofColor::black);
 	ofDrawRectangle(editor_.getCursorPos()*8, -10, 8, 12);
 	ofPopStyle();
-	ofDrawBitmapString(editor_.get(), 0, 0);
+	ofDrawBitmapString(editor_.getText(), 0, 0);
 	ofPopMatrix();
 }
 void Prompt::drawDebug(float x, float y) const

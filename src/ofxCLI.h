@@ -12,26 +12,41 @@ namespace cli {
 class LineEditor
 {
 public:
-	const std::string& get() const { return buffer_; }
+	const std::string& getText() const { return buffer_; }
 	std::size_t getCursorPos() const { return cursor_pos_; }
+	int getSelectionLength() const { return selection_length_; }
 	
 	bool insert(char ch);
 	bool insert(const std::string &str);
 	
 	bool deleteL(int amount=1);
 	bool deleteR(int amount=1);
+	bool deleteSelected();
 	bool clear();
 	
-	bool moveCursorL(int amount=1);
-	bool moveCursorR(int amount=1);
-	bool moveCursor(int amount);
+	bool moveCursorL();
+	bool moveCursorR();
+	bool moveCursorCharL(int amount=1);
+	bool moveCursorCharR(int amount=1);
+	bool moveCursorChar(int amount);
 	bool moveCursorWordL();
 	bool moveCursorWordR();
 	bool moveCursorHome();
 	bool moveCursorEnd();
+	
+	void enterSelectionMode() { selection_mode_ = true; }
+	void leaveSelectionMode() { selection_mode_ = false; }
+	void clearSelection() { selection_length_ = 0; }
+	enum MoveMode {
+		CHAR,WORD,WHOLE
+	};
+	void setMoveMode(MoveMode mode) { move_mode_ = mode; }
 private:
 	std::string buffer_;
 	std::size_t cursor_pos_=0;
+	int selection_length_=0;
+	bool selection_mode_=false;
+	MoveMode move_mode_=CHAR;
 };
 class Prompt {
 public:
@@ -55,9 +70,7 @@ public:
 	
 	ofEvent<ofJson> SUBSCRIBED, UNSUBSCRIBED;
 
-	const std::string& getText() const { return editor_.get(); }
-	std::size_t getCursorPos() const { return editor_.getCursorPos(); }
-	int getSelectLength() const { return select_length_; }
+	LineEditor& getCurrent() { return editor_; }
 	const std::vector<std::string>& getHistory() const { history_; }
 protected:
 	void keyPressed(ofKeyEventArgs &key);
@@ -74,7 +87,6 @@ protected:
 		bool control=false;
 		bool command=false;
 	} special_keys_;
-	int select_length_=0;
 	
 	Testate testate_;
 	
