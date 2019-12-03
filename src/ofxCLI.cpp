@@ -297,7 +297,10 @@ void Prompt::proc(const std::string &command)
 }
 void Prompt::proc(const std::string &program, const std::vector<std::string> &args)
 {
-	bool done = false;
+	Testate if_unsubscribed([this,program,args]() {
+		ofJson json = {{"program",program},{"args",args}};
+		ofNotifyEvent(UNSUBSCRIBED, json, this);
+	});
 	auto identifiers = identifier_.equal_range(program);
 	for(auto it = identifiers.first; it != identifiers.second; ++it) {
 		auto funcs = callback_.equal_range(it->second);
@@ -305,12 +308,8 @@ void Prompt::proc(const std::string &program, const std::vector<std::string> &ar
 			auto deduced_args = it2->second(args);
 			ofJson json = {{"program",program},{"args",deduced_args}};
 			ofNotifyEvent(SUBSCRIBED, json, this);
-			done = true;
+			if_unsubscribed.expire();
 		}
-	}
-	if(!done) {
-		ofJson json = {{"program",program},{"args",args}};
-		ofNotifyEvent(UNSUBSCRIBED, json, this);
 	}
 }
 
