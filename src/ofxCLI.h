@@ -5,10 +5,11 @@
 #include <unordered_map>
 #include <map>
 #include "ofJson.h"
-#include "json.hpp"
+#include "detail/traits.h"
 
 namespace ofx {
 namespace cli {
+
 class LineEditor
 {
 public:
@@ -58,10 +59,13 @@ public:
 	void draw(float x, float y) const;
 	void drawDebug(float x, float y) const;
 	using SubscriberIdentifier = std::size_t;
-	template<typename... Args>
-	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args={});
+	
+	template<typename F, typename Tuple=decltype(detail::make_tuple_from_args_list(std::declval<F>()))>
+	SubscriberIdentifier subscribe(const std::string &command, F callback, const Tuple &default_args={});
+	
 	template<typename Listener, typename Ret, typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, Listener *listener, Ret (Listener::*f)(Args...), const std::tuple<Args...> &default_args={});
+	
 	bool unsubscribe(SubscriberIdentifier identifier);
 	
 	void proc();
@@ -94,39 +98,15 @@ protected:
 };
 }}
 
-namespace {
-	template<typename Tuple, typename F, std::size_t ...I>
-	void apply_impl(F &&f, const Tuple &args, nlohmann::detail::index_sequence<I...>) {
-		f(std::get<I>(args)...);
-	}
-	template<typename... Args>
-	void apply(const std::function<void(Args...)> &f, const std::tuple<Args...> &args) {
-		apply_impl<std::tuple<Args...>>(f, args, nlohmann::detail::make_index_sequence<sizeof...(Args)>{});
-	}
-	template<std::size_t N, typename Tuple>
-	typename std::tuple_element<N, Tuple>::type toElement(const std::vector<std::string> &arr, const Tuple &defaults) {
-		return N < arr.size() ? ofFromString<typename std::tuple_element<N, Tuple>::type>(arr[N]) : std::get<N>(defaults);
-	}
-	template<typename Tuple, std::size_t... I>
-	Tuple make_tuple_from_vector_impl(const std::vector<std::string> &arr, const Tuple &defaults, nlohmann::detail::index_sequence<I...>) {
-		return std::make_tuple(toElement<I>(arr, defaults)...);
-	}
-	template<typename... Args>
-	std::tuple<Args...> make_tuple_from_vector(const std::vector<std::string> &arr, const std::tuple<Args...> &defaults) {
-		return make_tuple_from_vector_impl<std::tuple<Args...>>(arr, defaults,  nlohmann::detail::make_index_sequence<sizeof...(Args)>{});
-	}
-}
 
-
-
-template<typename... Args>
-inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args)
+template<typename F, typename Tuple>
+inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, F callback, const Tuple &default_args)
 {
 	auto ret = next_identifier_++;
 	identifier_.insert(std::make_pair(command, ret));
 	auto func = [callback,default_args](std::vector<std::string> argv) {
-		auto args = make_tuple_from_vector(argv, default_args);
-		apply(callback, args);
+		auto args = detail::make_tuple_from_vector(argv, default_args);
+		detail::apply(callback, args);
 		return args;
 	};
 	callback_.insert(make_pair(ret, func));
@@ -136,8 +116,7 @@ inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const 
 template<typename Listener, typename Ret, typename... Args>
 inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, Listener *listener, Ret (Listener::*callback)(Args...), const std::tuple<Args...> &default_args)
 {
-	auto func = [listener, callback](Args... args) {
+	return subscribe(command, [listener, callback](Args... args) {
 		(listener->*callback)(args...);
-	};
-	return subscribe(command, std::function<void(Args...)>(func), default_args);
+	}, default_args);
 }

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8139B7C22392414600FF2778 /* ofxCLI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8139B7C12392414600FF2778 /* ofxCLI.cpp */; };
+		6A9AA90EAFBE6A69BE246304 /* ofxCLI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8B3740DAD4EA970BEA11EB68 /* ofxCLI.cpp */; };
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
 /* End PBXBuildFile section */
@@ -25,8 +25,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8139B7BE23923FAB00FF2778 /* Testate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Testate.h; sourceTree = "<group>"; };
-		8139B7C12392414600FF2778 /* ofxCLI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofxCLI.cpp; path = ../src/ofxCLI.cpp; sourceTree = "<group>"; };
+		3C74C4FEA0D89120CEC43A26 /* Testate.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = Testate.h; path = ../../../addons/ofxCLI/src/utils/Testate.h; sourceTree = SOURCE_ROOT; };
+		40DC275E8B51D56C343A3CB6 /* ofxCLIBindOscReceiver.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ofxCLIBindOscReceiver.h; path = ../../../addons/ofxCLI/src/bindings/ofxCLIBindOscReceiver.h; sourceTree = SOURCE_ROOT; };
+		6965B7B77F95D781979CF996 /* ofxCLIBindOscSender.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ofxCLIBindOscSender.h; path = ../../../addons/ofxCLI/src/bindings/ofxCLIBindOscSender.h; sourceTree = SOURCE_ROOT; };
+		81F2E3A323964AFA001EF5B7 /* traits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = traits.h; path = ../src/detail/traits.h; sourceTree = "<group>"; };
+		8B3740DAD4EA970BEA11EB68 /* ofxCLI.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = ofxCLI.cpp; path = ../../../addons/ofxCLI/src/ofxCLI.cpp; sourceTree = SOURCE_ROOT; };
 		E42962AC2163EDD300A6A9E2 /* ofCamera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ofCamera.cpp; path = ../../../libs/openFrameworks/3d/ofCamera.cpp; sourceTree = SOURCE_ROOT; };
 		E42962AD2163EDD300A6A9E2 /* ofMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofMesh.h; path = ../../../libs/openFrameworks/3d/ofMesh.h; sourceTree = SOURCE_ROOT; };
 		E42962AE2163EDD300A6A9E2 /* ofNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofNode.h; path = ../../../libs/openFrameworks/3d/ofNode.h; sourceTree = SOURCE_ROOT; };
@@ -226,10 +229,20 @@
 			isa = PBXGroup;
 			children = (
 				EF9698689E8FDB5A5EA11A8F /* ofxCLI.h */,
-				8139B7C12392414600FF2778 /* ofxCLI.cpp */,
-				8139B7BD23923FAB00FF2778 /* utils */,
+				64DC7C6848397813F9D020E2 /* utils */,
+				6C2DDAC90D8944A3FC2FC79F /* bindings */,
+				8B3740DAD4EA970BEA11EB68 /* ofxCLI.cpp */,
+				81F2E3A323964AFA001EF5B7 /* traits.h */,
 			);
 			name = src;
+			sourceTree = "<group>";
+		};
+		64DC7C6848397813F9D020E2 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				3C74C4FEA0D89120CEC43A26 /* Testate.h */,
+			);
+			name = utils;
 			sourceTree = "<group>";
 		};
 		6948EE371B920CB800B5AC1A /* local_addons */ = {
@@ -239,13 +252,13 @@
 			name = local_addons;
 			sourceTree = "<group>";
 		};
-		8139B7BD23923FAB00FF2778 /* utils */ = {
+		6C2DDAC90D8944A3FC2FC79F /* bindings */ = {
 			isa = PBXGroup;
 			children = (
-				8139B7BE23923FAB00FF2778 /* Testate.h */,
+				6965B7B77F95D781979CF996 /* ofxCLIBindOscSender.h */,
+				40DC275E8B51D56C343A3CB6 /* ofxCLIBindOscReceiver.h */,
 			);
-			name = utils;
-			path = ../src/utils;
+			name = bindings;
 			sourceTree = "<group>";
 		};
 		845B27C4769E1055DAA1F75B /* ofxCLI */ = {
@@ -667,9 +680,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8139B7C22392414600FF2778 /* ofxCLI.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
+				6A9AA90EAFBE6A69BE246304 /* ofxCLI.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -702,6 +715,8 @@
 					src,
 					src,
 					../../../addons/ofxCLI/src,
+					../../../addons/ofxCLI/src/bindings,
+					../../../addons/ofxCLI/src/utils,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -727,6 +742,8 @@
 					src,
 					src,
 					../../../addons/ofxCLI/src,
+					../../../addons/ofxCLI/src/bindings,
+					../../../addons/ofxCLI/src/utils,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
@@ -768,6 +785,8 @@
 					src,
 					src,
 					../../../addons/ofxCLI/src,
+					../../../addons/ofxCLI/src/bindings,
+					../../../addons/ofxCLI/src/utils,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
@@ -804,6 +823,8 @@
 					src,
 					src,
 					../../../addons/ofxCLI/src,
+					../../../addons/ofxCLI/src/bindings,
+					../../../addons/ofxCLI/src/utils,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -829,6 +850,8 @@
 					src,
 					src,
 					../../../addons/ofxCLI/src,
+					../../../addons/ofxCLI/src/bindings,
+					../../../addons/ofxCLI/src/utils,
 				);
 				ICON = "$(ICON_NAME_DEBUG)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
@@ -859,6 +882,8 @@
 					src,
 					src,
 					../../../addons/ofxCLI/src,
+					../../../addons/ofxCLI/src/bindings,
+					../../../addons/ofxCLI/src/utils,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
