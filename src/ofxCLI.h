@@ -45,6 +45,8 @@ public:
 	using SubscriberIdentifier = std::size_t;
 	template<typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, std::function<void(Args...)> callback, const std::tuple<Args...> &default_args={});
+	template<typename Listener, typename Ret, typename... Args>
+	SubscriberIdentifier subscribe(const std::string &command, Listener *listener, Ret (Listener::*f)(Args...), const std::tuple<Args...> &default_args={});
 	bool unsubscribe(SubscriberIdentifier identifier);
 	
 	void proc();
@@ -117,4 +119,13 @@ inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const 
 	};
 	callback_.insert(make_pair(ret, func));
 	return ret;
+}
+
+template<typename Listener, typename Ret, typename... Args>
+inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, Listener *listener, Ret (Listener::*callback)(Args...), const std::tuple<Args...> &default_args)
+{
+	auto func = [listener, callback](Args... args) {
+		(listener->*callback)(args...);
+	};
+	return subscribe(command, std::function<void(Args...)>(func), default_args);
 }

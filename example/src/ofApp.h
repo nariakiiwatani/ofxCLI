@@ -24,4 +24,5 @@ public:
 	void gotMessage(ofMessage msg);
 private:
 	ofx::cli::Prompt prompt_;
+	bool someFunction(int a, float b, std::string c);
 };
