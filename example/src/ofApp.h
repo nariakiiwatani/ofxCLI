@@ -25,4 +25,5 @@ public:
 private:
 	ofx::cli::Prompt prompt_;
 	bool someFunction(int a, float b, std::string c);
+	ofFloatColor text_color_=ofFloatColor(1,1,1,1);
 };

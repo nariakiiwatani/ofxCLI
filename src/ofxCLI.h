@@ -66,6 +66,9 @@ public:
 	template<typename Listener, typename Ret, typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, Listener *listener, Ret (Listener::*f)(Args...), const std::tuple<Args...> &default_args={});
 	
+	template<typename... Args>
+	SubscriberIdentifier subscribe(const std::string &command, Args &...args);
+	
 	bool unsubscribe(SubscriberIdentifier identifier);
 	
 	void proc();
@@ -119,4 +122,12 @@ inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const 
 	return subscribe(command, [listener, callback](Args... args) {
 		(listener->*callback)(args...);
 	}, default_args);
+}
+
+template<typename... Args>
+inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, Args &...args)
+{
+	return subscribe(command, [&args...](Args... argv) {
+		std::tie(args...) = std::make_tuple(argv...);
+	}, std::make_tuple(args...));
 }

@@ -16,6 +16,15 @@ void ofApp::setup(){
 	prompt_.subscribe("some", this, &ofApp::someFunction);
 	// member function with default arguments
 	prompt_.subscribe("some2", this, &ofApp::someFunction, {100, 50.3f, "some string"});
+	// direct binding
+	prompt_.subscribe("textcolor", text_color_.r, text_color_.g, text_color_.b, text_color_.a);
+	// (want to write like this but no idea...)
+	//prompt_.subscribe("textcolor", text_color_);
+	
+	// global function(i don't know how to make this easier...)
+	prompt_.subscribe("bgcolor", [](float r, float g, float b, float a) {
+		ofBackground(ofFloatColor(r,g,b,a));
+	}, {0,0,0,1});
 }
 
 bool ofApp::someFunction(int a, float b, std::string c)
@@ -30,7 +39,10 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	ofPushStyle();
+	ofSetColor(text_color_);
 	prompt_.drawDebug(0,10);
+	ofPopStyle();
 }
 
 //--------------------------------------------------------------
