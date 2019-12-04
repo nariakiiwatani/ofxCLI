@@ -53,7 +53,7 @@ class Suggest
 {
 public:
 	Suggest() {
-		next_ = std::end(candidates_);
+		prev_ = std::end(candidates_);
 	}
 	bool setLoop(bool loop) { is_loop_ = loop; }
 	void updateCandidates(const std::vector<std::string> &candidates, const std::string &str) {
@@ -63,19 +63,25 @@ public:
 				candidates_.push_back(c);
 			}
 		}
-		next_ = std::begin(candidates_);
+		prev_ = std::begin(candidates_);
+	}
+	std::string prev() {
+		if(prev_ == std::begin(candidates_)) {
+			prev_ = std::end(candidates_);
+		}
+		return *(--prev_);
 	}
 	std::string next() {
-		std::string ret = *next_;
-		if(++next_ == std::end(candidates_) && is_loop_) {
-			next_ = std::begin(candidates_);
+		if(++prev_ == std::end(candidates_) && is_loop_) {
+			prev_ = std::begin(candidates_);
 		}
-		return ret;
+		return *prev_;
 	}
-	bool empty() const { return next_ == std::end(candidates_); }
+	bool hasPrev() const { return !candidates_.empty() && (is_loop_ || prev_ != std::begin(candidates_)); }
+	bool hasNext() const { return !candidates_.empty() && (is_loop_ || prev_ != std::end(candidates_)); }
 private:
 	std::vector<std::string> candidates_;
-	std::vector<std::string>::iterator next_;
+	std::vector<std::string>::iterator prev_;
 	bool is_loop_=true;
 };
 class Prompt {

@@ -204,8 +204,8 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 				suggest_.updateCandidates(candidates, editor_.getText());
 				is_suggesting_ = true;
 			}
-			if(!suggest_.empty()) {
-				string str = suggest_.next() + " ";
+			if(special_keys_.shift ? suggest_.hasPrev() : suggest_.hasNext()) {
+				string str = (special_keys_.shift ? suggest_.prev() : suggest_.next()) + " ";
 				editor_.clear();
 				editor_.insert(str);
 			}
