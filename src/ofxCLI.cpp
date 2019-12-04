@@ -198,7 +198,7 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 		case OF_KEY_TAB:
 			if(!is_suggesting_) {
 				vector<string> candidates;
-				for(auto &&i : identifier_) {
+				for(auto &&i : subscribed_) {
 					candidates.push_back(i.first);
 				}
 				suggest_.updateCandidates(candidates, editor_.getText());
@@ -251,17 +251,13 @@ void Prompt::keyReleased(ofKeyEventArgs &key)
 
 bool Prompt::unsubscribe(Prompt::SubscriberIdentifier identifier)
 {
-	auto result = callback_.find(identifier);
-	if(result == end(callback_)) {
+	auto result = find_if(begin(subscribed_), end(subscribed_), [identifier](const pair<std::string, Subscriber> &p) {
+		return p.second.identifier == identifier;
+	});
+	if(result == end(subscribed_)) {
 		return false;
 	}
-	callback_.erase(identifier);
-	auto result2 = find_if(begin(identifier_), end(identifier_), [identifier](const pair<std::string, SubscriberIdentifier> &p) {
-		return p.second == identifier;
-	});
-	if(result2 != end(identifier_)) {
-		identifier_.erase(result2);
-	}
+	subscribed_.erase(result);
 	return true;
 }
 
@@ -328,15 +324,12 @@ void Prompt::proc(const std::string &program, const std::vector<std::string> &ar
 		ofJson json = {{"program",program},{"args",args}};
 		ofNotifyEvent(UNSUBSCRIBED, json, this);
 	});
-	auto identifiers = identifier_.equal_range(program);
+	auto identifiers = subscribed_.equal_range(program);
 	for(auto it = identifiers.first; it != identifiers.second; ++it) {
-		auto funcs = callback_.equal_range(it->second);
-		for(auto it2 = funcs.first; it2 != funcs.second; ++it2) {
-			auto deduced_args = it2->second(args);
-			ofJson json = {{"program",program},{"args",deduced_args}};
-			ofNotifyEvent(SUBSCRIBED, json, this);
-			if_unsubscribed.expire();
-		}
+		auto deduced_args = it->second.func(args);
+		ofJson json = {{"program",program},{"args",deduced_args}};
+		ofNotifyEvent(SUBSCRIBED, json, this);
+		if_unsubscribed.expire();
 	}
 }
 

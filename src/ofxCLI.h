@@ -111,8 +111,11 @@ protected:
 	LineEditor editor_;
 	std::deque<std::string> history_;
 	std::deque<std::string>::iterator history_header_;
-	std::unordered_multimap<std::string, SubscriberIdentifier> identifier_;
-	std::map<SubscriberIdentifier, std::function<ofJson(std::vector<std::string>)>> callback_;
+	struct Subscriber {
+		SubscriberIdentifier identifier;
+		std::function<ofJson(std::vector<std::string>)> func;
+	};
+	std::unordered_multimap<std::string, Subscriber> subscribed_;
 	
 	Suggest suggest_;
 	bool is_suggesting_=false;
@@ -134,15 +137,15 @@ protected:
 template<typename F, typename Tuple>
 inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, F callback, const Tuple &default_args)
 {
-	auto ret = next_identifier_++;
-	identifier_.insert(std::make_pair(command, ret));
-	auto func = [callback,default_args](std::vector<std::string> argv) {
+	Subscriber subs;
+	subs.identifier = next_identifier_++;
+	subs.func = [callback,default_args](std::vector<std::string> argv) {
 		auto args = detail::make_tuple_from_vector(argv, default_args);
 		detail::apply(callback, args);
 		return args;
 	};
-	callback_.insert(make_pair(ret, func));
-	return ret;
+	subscribed_.insert(make_pair(command, subs));
+	return subs.identifier;
 }
 
 template<typename Listener, typename Ret, typename... Args>
