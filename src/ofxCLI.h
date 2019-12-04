@@ -87,17 +87,14 @@ public:
 	Prompt(const Settings &settings=Settings());
 	void draw(float x, float y) const;
 	void drawDebug(float x, float y) const;
-	using SubscriberIdentifier = std::size_t;
 	
+	using SubscriberIdentifier = std::size_t;
 	template<typename F, typename Tuple=decltype(detail::make_tuple_from_args_list(std::declval<F>()))>
 	SubscriberIdentifier subscribe(const std::string &command, F callback, const Tuple &default_args={});
-	
 	template<typename Listener, typename Ret, typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, Listener *listener, Ret (Listener::*f)(Args...), const std::tuple<Args...> &default_args={});
-	
 	template<typename... Args>
 	SubscriberIdentifier subscribe(const std::string &command, Args &...args);
-	
 	bool unsubscribe(SubscriberIdentifier identifier);
 	
 	void proc();
