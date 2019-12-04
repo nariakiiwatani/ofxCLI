@@ -235,7 +235,12 @@ void Prompt::keyReleased(ofKeyEventArgs &key)
 
 bool Prompt::unsubscribe(Prompt::SubscriberIdentifier identifier)
 {
+	auto result = callback_.find(identifier);
+	if(result == end(callback_)) {
+		return false;
+	}
 	callback_.erase(identifier);
+	return true;
 }
 
 namespace {
