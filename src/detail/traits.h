@@ -6,6 +6,17 @@
 namespace ofx {
 namespace cli {
 namespace detail {
+	
+	template<typename Arg> inline static std::string get_type_name() { return "unknown_type"; }
+	template<> inline static std::string get_type_name<std::string>() { return "string"; }
+	template<> inline static std::string get_type_name<int>() { return "int"; }
+	template<> inline static std::string get_type_name<float>() { return "float"; }
+	
+	template<typename... Args>
+	inline std::vector<std::string> get_tuple_element_name(std::tuple<Args...>) {
+		return {(get_type_name<Args>())...};
+	}
+
 	template<typename F, typename R, typename... Args>
 	auto make_tuple_from_args_list_impl(F, R(F::*f)(Args...) const) -> std::tuple<Args...>;
 	

@@ -333,6 +333,20 @@ void Prompt::proc(const std::string &program, const std::vector<std::string> &ar
 	}
 }
 
+vector<vector<string>> Prompt::getTips() const
+{
+	auto args = split(editor_.getText());
+	if(args.empty()) {
+		return {};
+	}
+	vector<vector<string>> ret;
+	auto identifiers = subscribed_.equal_range(args[0]);
+	for(auto it = identifiers.first; it != identifiers.second; ++it) {
+		ret.push_back(it->second.tip);
+	}
+	return ret;
+}
+
 void Prompt::draw(float x, float y) const
 {
 	ofPushMatrix();
@@ -356,4 +370,13 @@ void Prompt::drawDebug(float x, float y) const
 	}
 	ofPopMatrix();
 	draw(x,y);
+	y += 20;
+	
+	ofPushMatrix();
+	auto &&tips = getTips();
+	for(auto &tip : tips) {
+		ofDrawBitmapStringHighlight(ofJoinString(tip, " "), x, y, ofFloatColor(1,1,0,0.5f), ofFloatColor(0,0,0,1));
+		y += 20;
+	}
+	ofPopMatrix();
 }

@@ -107,6 +107,8 @@ public:
 	void proc(const std::string &command);
 	void proc(const std::string &program, const std::vector<std::string> &args);
 	
+	std::vector<std::vector<std::string>> getTips() const;
+	
 	ofEvent<ofJson> SUBSCRIBED, UNSUBSCRIBED;
 
 	LineEditor& getCurrent() { return editor_; }
@@ -120,6 +122,7 @@ protected:
 	struct Subscriber {
 		SubscriberIdentifier identifier;
 		std::function<ofJson(std::vector<std::string>)> func;
+		std::vector<std::string> tip;
 	};
 	std::unordered_multimap<std::string, Subscriber> subscribed_;
 	
@@ -139,7 +142,6 @@ protected:
 };
 }}
 
-
 template<typename F, typename Tuple>
 inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const std::string &command, F callback, const Tuple &default_args)
 {
@@ -150,6 +152,8 @@ inline ofx::cli::Prompt::SubscriberIdentifier ofx::cli::Prompt::subscribe(const 
 		detail::apply(callback, args);
 		return args;
 	};
+	subs.tip = {detail::get_tuple_element_name(default_args)};
+	subs.tip.insert(std::begin(subs.tip), command);
 	subscribed_.insert(make_pair(command, subs));
 	return subs.identifier;
 }
