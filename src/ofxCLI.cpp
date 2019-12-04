@@ -195,6 +195,21 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			editor_.deleteSelected() || editor_.deleteL();
 			clear_select = true;
 			break;
+		case OF_KEY_TAB:
+			if(!is_suggesting_) {
+				vector<string> candidates;
+				for(auto &&i : identifier_) {
+					candidates.push_back(i.first);
+				}
+				suggest_.updateCandidates(candidates, editor_.getText());
+				is_suggesting_ = true;
+			}
+			if(!suggest_.empty()) {
+				string str = suggest_.next() + " ";
+				editor_.clear();
+				editor_.insert(str);
+			}
+			break;
 		case OF_KEY_RETURN: {
 			auto &&str = editor_.getText();
 			if(!str.empty()) {
@@ -216,6 +231,7 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 	}
 	if(clear_select) {
 		editor_.clearSelection();
+		is_suggesting_ = false;
 	}
 }
 

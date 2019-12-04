@@ -49,6 +49,35 @@ private:
 	bool selection_mode_=false;
 	MoveMode move_mode_=CHAR;
 };
+class Suggest
+{
+public:
+	Suggest() {
+		next_ = std::end(candidates_);
+	}
+	bool setLoop(bool loop) { is_loop_ = loop; }
+	void updateCandidates(const std::vector<std::string> &candidates, const std::string &str) {
+		candidates_.clear();
+		for(auto &&c : candidates) {
+			if(str.empty() || c.find(str) == 0) {
+				candidates_.push_back(c);
+			}
+		}
+		next_ = std::begin(candidates_);
+	}
+	std::string next() {
+		std::string ret = *next_;
+		if(++next_ == std::end(candidates_) && is_loop_) {
+			next_ = std::begin(candidates_);
+		}
+		return ret;
+	}
+	bool empty() const { return next_ == std::end(candidates_); }
+private:
+	std::vector<std::string> candidates_;
+	std::vector<std::string>::iterator next_;
+	bool is_loop_=true;
+};
 class Prompt {
 public:
 	struct Settings {
@@ -87,6 +116,9 @@ protected:
 	std::deque<std::string>::iterator history_header_;
 	std::unordered_multimap<std::string, SubscriberIdentifier> identifier_;
 	std::map<SubscriberIdentifier, std::function<ofJson(std::vector<std::string>)>> callback_;
+	
+	Suggest suggest_;
+	bool is_suggesting_=false;
 	
 	struct SpecialKeys {
 		bool shift=false;
