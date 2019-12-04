@@ -256,6 +256,12 @@ bool Prompt::unsubscribe(Prompt::SubscriberIdentifier identifier)
 		return false;
 	}
 	callback_.erase(identifier);
+	auto result2 = find_if(begin(identifier_), end(identifier_), [identifier](const pair<std::string, SubscriberIdentifier> &p) {
+		return p.second == identifier;
+	});
+	if(result2 != end(identifier_)) {
+		identifier_.erase(result2);
+	}
 	return true;
 }
 
