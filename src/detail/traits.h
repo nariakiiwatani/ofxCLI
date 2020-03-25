@@ -8,9 +8,9 @@ namespace cli {
 namespace detail {
 	
 	template<typename Arg> inline static std::string get_type_name() { return "unknown_type"; }
-	template<> inline static std::string get_type_name<std::string>() { return "string"; }
-	template<> inline static std::string get_type_name<int>() { return "int"; }
-	template<> inline static std::string get_type_name<float>() { return "float"; }
+	template<> inline std::string get_type_name<std::string>() { return "string"; }
+	template<> inline std::string get_type_name<int>() { return "int"; }
+	template<> inline std::string get_type_name<float>() { return "float"; }
 	
 	template<typename... Args>
 	inline std::vector<std::string> get_tuple_element_name(std::tuple<Args...>) {
