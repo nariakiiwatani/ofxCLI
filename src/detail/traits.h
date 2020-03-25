@@ -18,10 +18,10 @@ namespace detail {
 	}
 
 	template<typename F, typename R, typename... Args>
-	auto make_tuple_from_args_list_impl(F, R(F::*f)(Args...) const) -> std::tuple<Args...>;
+	auto make_tuple_from_args_list_impl(R(F::*f)(Args...) const) -> std::tuple<Args...>;
 	
 	template<typename F>
-	auto make_tuple_from_args_list(F f)->decltype(make_tuple_from_args_list_impl(f, &F::operator()));
+	auto make_tuple_from_args_list(F f)->decltype(make_tuple_from_args_list_impl(&F::operator()));
 	
 	template<typename Tuple, typename F, std::size_t ...I>
 	void apply_impl(F &&f, const Tuple &args, nlohmann::detail::index_sequence<I...>) {

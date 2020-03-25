@@ -30,6 +30,7 @@ void ofApp::setup(){
 bool ofApp::someFunction(int a, float b, std::string c)
 {
 	cout << a << "," << b << "," << c << endl;
+	return true;
 }
 
 //--------------------------------------------------------------
