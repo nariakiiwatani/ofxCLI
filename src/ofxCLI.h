@@ -34,6 +34,7 @@ public:
 	bool moveCursorWordR();
 	bool moveCursorHome();
 	bool moveCursorEnd();
+	bool selectAll();
 	
 	void enterSelectionMode() { selection_mode_ = true; }
 	void leaveSelectionMode() { selection_mode_ = false; }

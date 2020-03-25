@@ -136,6 +136,13 @@ bool LineEditor::moveCursorEnd()
 	return cursor_pos_ < buffer_.size() && moveCursorCharR(buffer_.size()-cursor_pos_);
 }
 
+bool LineEditor::selectAll()
+{
+	cursor_pos_ = buffer_.size();
+	selection_length_ = -cursor_pos_;
+	return true;
+}
+
 Prompt::Prompt(const Settings &settings)
 {
 	if(settings.enable_key_event) {
@@ -224,7 +231,10 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 			clear_select = true;
 		}	break;
 		default:
-			if(0x20 <= key.key && key.key <= 0x7e) {
+			if(special_keys_.command && key.key == 'a') {
+				editor_.selectAll();
+			}
+			else if(0x20 <= key.key && key.key <= 0x7e) {
 				clear_select = true;
 				editor_.deleteSelected();
 				editor_.insert(key.key);
