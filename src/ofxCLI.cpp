@@ -361,23 +361,28 @@ void Prompt::draw(float x, float y) const
 	ofDrawBitmapString(editor_.getText(), 0, 0);
 	ofPopMatrix();
 }
-void Prompt::drawDebug(float x, float y) const
+void Prompt::drawHistory(float x, float y, float dx, float dy, const ofFloatColor &text_color, const ofFloatColor &bg_color) const
 {
-	ofPushMatrix();
-	ofTranslate(x,0);
 	for(auto &&h : history_) {
-		ofDrawBitmapString(h, 0, y);
-		y += 10;
+		ofDrawBitmapStringHighlight(h, x, y, bg_color, text_color);
+		x += dx;
+		y += dy;
 	}
-	ofPopMatrix();
-	draw(x,y);
-	y += 20;
-	
-	ofPushMatrix();
+}
+void Prompt::drawTips(float x, float y, float dx, float dy, const ofFloatColor &text_color, const ofFloatColor &bg_color) const
+{
 	auto &&tips = getTips();
 	for(auto &tip : tips) {
-		ofDrawBitmapStringHighlight(ofJoinString(tip, " "), x, y, ofFloatColor(1,1,0,0.5f), ofFloatColor(0,0,0,1));
-		y += 20;
+		ofDrawBitmapStringHighlight(ofJoinString(tip, " "), x, y, bg_color, text_color);
+		x += dx;
+		y += dy;
 	}
-	ofPopMatrix();
+}
+void Prompt::drawDebug(float x, float y) const
+{
+	draw(x,y);
+	float line_height = 10;
+	drawHistory(x,y+history_.size()*line_height,0,-line_height);
+	float tips_height = 20;
+	drawTips(x,y+tips_height,0,tips_height);
 }

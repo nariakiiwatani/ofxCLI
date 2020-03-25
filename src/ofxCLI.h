@@ -92,6 +92,8 @@ public:
 	};
 	Prompt(const Settings &settings=Settings());
 	void draw(float x, float y) const;
+	void drawHistory(float x, float y, float dx=0, float dy=10, const ofFloatColor &text_color={0.8f}, const ofFloatColor &bg_color={0,0}) const;
+	void drawTips(float x, float y, float dx=0, float dy=20, const ofFloatColor &text_color={0,0,0}, const ofFloatColor &bg_color={1,1,0,0.5f}) const;
 	void drawDebug(float x, float y) const;
 	
 	using SubscriberIdentifier = std::size_t;
