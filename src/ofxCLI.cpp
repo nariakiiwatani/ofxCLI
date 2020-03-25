@@ -50,6 +50,7 @@ bool LineEditor::clear()
 	buffer_.clear();
 	cursor_pos_ = 0;
 	selection_length_ = 0;
+	return true;
 }
 
 bool LineEditor::moveCursorL()
