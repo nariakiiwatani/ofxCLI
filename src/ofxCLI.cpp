@@ -226,6 +226,7 @@ void Prompt::keyPressed(ofKeyEventArgs &key)
 		default:
 			if(0x20 <= key.key && key.key <= 0x7e) {
 				clear_select = true;
+				editor_.deleteSelected();
 				editor_.insert(key.key);
 			}
 			break;
